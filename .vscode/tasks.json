@@ -1,0 +1,48 @@
+{
+  "tasks": [
+    {
+      "type": "cppbuild",
+      "label": "Build (C++)",
+      "command": "g++",
+      "args": [
+        "-IC++/inc",
+        "C++/test/main.cpp",
+        "-std=c++17",
+        "-o",
+        "bin/test_cpp",
+        "-g"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "detail": "Make and debug"
+    },
+    {
+      "type": "shell",
+      "label": "Build (C)",
+      "command": "make",
+      "args": [
+        "test"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [
+        "$gcc"
+      ],
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "detail": "Make and debug"
+    }
+  ],
+  "version": "2.0.0"
+}
