@@ -1,6 +1,8 @@
 #ifndef VEC3D_H
 #define VEC3D_H
 
+#include <diagnostic.h>
+
 #define _X 0
 #define _Y 1
 #define _Z 2

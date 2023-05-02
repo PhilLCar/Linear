@@ -2,6 +2,7 @@
 #define MATRIX_H
 
 #include <vec3D.h>
+#include <diagnostic.h>
 
 typedef struct matrix {
   double **M;
