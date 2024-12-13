@@ -18,7 +18,7 @@ OBJECT (int rows, int cols) NOBASE
   int      cols;
 END_OBJECT(2, 2);
 
-Matrix *STATIC (Fill)(int rows, int cols, double values[cols][rows]);
+Matrix *STATIC (Fill)(int rows, int cols, double values[rows][cols]);
 Matrix *STATIC (Vec)(Vec *other);
 Matrix *STATIC (VecT)(Vec *other);
 

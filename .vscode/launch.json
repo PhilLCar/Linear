@@ -34,7 +34,7 @@
       "name": "Debug (C)",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/bin/linear0.test",
+      "program": "${workspaceFolder}/bin/linear.test",
       "args": [],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
