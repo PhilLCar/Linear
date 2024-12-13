@@ -1,34 +1,40 @@
 #ifndef MATRIX_H
 #define MATRIX_H
 
-#include <vec3D.h>
-#include <diagnostic.h>
+// C
+#include <stdarg.h>
 
-typedef struct matrix {
-  double **M;
+// CUT
+#include <diagnostic.h>
+#include <vec.h>
+#include <str.h>
+
+#define TYPENAME Matrix
+
+OBJECT (int rows, int cols) NOBASE
+  double **values;
   int      rows;
   int      cols;
-} Matrix;
+END_OBJECT(2, 2);
 
-Matrix   MX(int rows, int cols);
-Matrix   MXD(Matrix m);
-Matrix   MXV3D(Vec3D v);
-Matrix   MXV3DT(Vec3D v);
-double **MXrow(Matrix m, int i);
-double **MXcol(Matrix m, int j);
-Matrix   MXcrs(Matrix m1, Matrix m2);
-Matrix   MXadd(Matrix m1, Matrix m2);
-Matrix   MXsub(Matrix m1, Matrix m2);
-Matrix   MXmul(Matrix m, double k);
-Matrix   MXdiv(Matrix m, double k);
-double   MXdet(Matrix m);
-Matrix   MXmin(Matrix m, int i, int j);
-Matrix   MXadj(Matrix m);
-Matrix   MXI(Matrix m);
-Matrix   MXT(Matrix m);
-void     MXfree(Matrix m);
-Matrix  *MXnew(int rows, int cols);
-void     MXdel(Matrix **m);
-void     MXprint(Matrix m);
+Matrix *STATIC (Fill)(int rows, int cols, ...);
+Matrix *STATIC (Vec)(Vec *other);
+Matrix *STATIC (VecT)(Vec *other);
+
+
+Matrix *_(Copy)();
+Matrix *_(Cross)(Matrix *other);
+Matrix *_(Add)(Matrix *other);
+Matrix *_(Sub)(Matrix *other);
+Matrix *_(Mul)(double k);
+Matrix *_(Div)(double k);
+double  _(Det)();
+Matrix *_(Min)(int i, int j);
+Matrix *_(Adj)();
+Matrix *_(I)();
+Matrix *_(T)();
+String *_(ToString)() VIRTUAL (ToString);
+
+#undef TYPENAME
 
 #endif

@@ -34,7 +34,7 @@
       "name": "Debug (C)",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceFolder}/bin/test_c",
+      "program": "${workspaceFolder}/bin/linear0.test",
       "args": [],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
@@ -52,9 +52,7 @@
           "text": "-gdb-set disassembly-flavor intel",
           "ignoreFailures": true
         }
-      ],
-      "preLaunchTask": "Build (C++)",
-      "miDebuggerPath": "/usr/bin/gdb"
+      ]
     }
   ]
 }

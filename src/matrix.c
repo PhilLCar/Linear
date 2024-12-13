@@ -1,230 +1,295 @@
 #include <matrix.h>
-#include <stdlib.h>
-#include <stdio.h>
 
-Matrix MX(int rows, int cols) {
-  Matrix out;
-  out.rows = rows;
-  out.cols = cols;
-  out.M = malloc(rows * sizeof(double*));
-  for (int i = 0; i < rows; i++) {
-    out.M[i] = malloc(cols * sizeof(double));
-  }
-  return out;
-}
+#define TYPENAME Matrix
 
-Matrix MXD(Matrix m) {
-  Matrix out;
-  out.rows = m.rows;
-  out.cols = m.cols;
-  out.M = malloc(m.rows * sizeof(double*));
-  for (int i = 0; i < m.rows; i++) {
-    out.M[i] = malloc(m.cols * sizeof(double));
-    for (int j = 0; j < m.cols; j++) {
-      out.M[i][j] = m.M[i][j];
+Matrix *_(Construct)(int rows, int cols)
+{
+  if (this) {
+    this->rows   = rows;
+    this->cols   = cols;
+    this->values = malloc(rows * sizeof(double*));
+
+    for (int i = 0; i < rows; i++) {
+      this->values[i] = malloc(cols * sizeof(double));
     }
   }
-  return out;
+
+  return this;
 }
 
-Matrix MXV3D(Vec3D v) {
-  Matrix out = MX(3, 1);
-  out.M[0][0] = v.X;
-  out.M[1][0] = v.Y;
-  out.M[2][0] = v.Z;
-  return out;
-}
-
-Matrix MXV3DT(Vec3D v) {
-  Matrix out = MX(1, 3);
-  out.M[0][0] = v.X;
-  out.M[0][1] = v.Y;
-  out.M[0][2] = v.Z;
-  return out;
-}
-
-double **MXrow(Matrix m, int i) {
-  double **row = malloc(m.cols * sizeof(double*));
-  for (int j = 0; j < m.cols; j++) {
-    row[j] = &m.M[i][j];
+void _(Destruct)()
+{
+  if (this->values) {
+    for (int i = 0; i < this->rows; i++) free(this->values[i]);
+    free(this->values);
+    this->values = NULL;
   }
-  return row;
 }
 
-double **MXcol(Matrix m, int j) {
-  double **col = malloc(m.rows * sizeof(double*));
-  for (int i = 0; i < m.rows; i++) {
-    col[i] = &m.M[i][j];
+Matrix *STATIC (Fill)(int rows, int cols, ...)
+{
+  Matrix *out = NEW (Matrix)(rows, cols);
+
+  va_list argv;
+  va_start(argv, cols);
+
+  for (int i = 0; i < rows; i++) {
+    for (int j = 0; j < cols; j++) {
+      out->values[i][j] = va_arg(argv, double);
+    }
   }
-  return col;
+
+  va_end(argv);
+
+  return out;
 }
 
-Matrix MXcrs(Matrix m1, Matrix m2) {
-  Matrix out = MX(m1.rows, m2.cols);
-  for (int i = 0; i < out.rows; i++) {
-    for (int j = 0; j < out.cols; j++) {
-      out.M[i][j] = 0;
-      for (int k = 0; k < m1.cols; k++) {
-        out.M[i][j] += m1.M[i][k] * m2.M[k][j];
+Matrix *STATIC (Vec)(Vec *other)
+{
+  Matrix *out = NEW (Matrix) (other->dimension, 1);
+
+  if (out) {
+    for (int i = 0; i < other->dimension; i++) {
+      out->values[i][0] = other->values[i];
+    }
+  }
+
+  return out;
+}
+
+Matrix *STATIC (VecT)(Vec *other)
+{
+  Matrix *out = NEW (Matrix) (1, other->dimension);
+
+  if (out) {
+    for (int j = 0; j < other->dimension; j++) {
+      out->values[0][j] = other->values[j];
+    }
+  }
+
+  return out;
+}
+
+Matrix *_(Copy)() {
+  Matrix *out = NEW (Matrix) (this->rows, this->cols);
+
+  if (out) {
+    for (int i = 0; i < this->rows; i++) {
+      for (int j = 0; j < this->cols; j++) {
+        out->values[i][j] = this->values[i][j];
       }
     }
   }
-  MXfree(m1);
-  MXfree(m2);
+
   return out;
 }
 
-Matrix MXadd(Matrix m1, Matrix m2) {
-  Matrix out = MX(m1.rows, m1.cols);
-  for (int i = 0; i < out.rows; i++) {
-    for (int j = 0; j < out.cols; j++) {
-      out.M[i][j] = m1.M[i][j] + m2.M[i][j];
+// double **MXrow(Matrix m, int i) {
+//   double **row = malloc(m.cols * sizeof(double*));
+//   for (int j = 0; j < m.cols; j++) {
+//     row[j] = &m.M[i][j];
+//   }
+//   return row;
+// }
+
+// double **MXcol(Matrix m, int j) {
+//   double **col = malloc(m.rows * sizeof(double*));
+//   for (int i = 0; i < m.rows; i++) {
+//     col[i] = &m.M[i][j];
+//   }
+//   return col;
+// }
+
+Matrix *_(Cross)(Matrix *other) {
+  if (this->cols != other->rows) {
+    THROW (NEW (Exception)("Cannot multiply a (%dx%d) matrix with a (%dx%d)", this->rows, this->cols, other->rows, other->cols));
+  }
+
+  Matrix *out = NEW (Matrix) (this->rows, other->cols);
+
+  if (out) {
+    for (int i = 0; i < out->rows; i++) {
+      for (int j = 0; j < out->cols; j++) {
+        out->values[i][j] = 0;
+
+        for (int k = 0; k < this->cols; k++) {
+          out->values[i][j] += this->values[i][k] * other->values[k][j];
+        }
+      }
     }
   }
-  MXfree(m1);
-  MXfree(m2);
+  
+  DELETE (this);
+  DELETE (other);
+
   return out;
 }
 
-Matrix MXsub(Matrix m1, Matrix m2) {
-  Matrix out = MX(m1.rows, m1.cols);
-  for (int i = 0; i < out.rows; i++) {
-    for (int j = 0; j < out.cols; j++) {
-      out.M[i][j] = m1.M[i][j] - m2.M[i][j];
+Matrix *_(Add)(Matrix *other) {
+  if (this->rows != other->rows || this->cols != other->cols) {
+    THROW (NEW (Exception)("Cannot add a (%dx%d) matrix with a (%dx%d)", this->rows, this->cols, other->rows, other->cols));
+  }
+
+  for (int i = 0; i < this->rows; i++) {
+    for (int j = 0; j < this->cols; j++) {
+      this->values[i][j] += other->values[i][j];
     }
   }
-  MXfree(m1);
-  MXfree(m2);
-  return out;
+  
+  DELETE (other);
+  
+  return this;
 }
 
-Matrix MXmul(Matrix m, double k) {
-  Matrix out = MX(m.rows, m.cols);
-  for (int i = 0; i < out.rows; i++) {
-    for (int j = 0; j < out.cols; j++) {
-      out.M[i][j] = m.M[i][j] * k;
+Matrix *_(Sub)(Matrix *other) {
+  if (this->rows != other->rows || this->cols != other->cols) {
+    THROW (NEW (Exception)("Cannot substract a (%dx%d) matrix with a (%dx%d)", this->rows, this->cols, other->rows, other->cols));
+  }
+
+  for (int i = 0; i < this->rows; i++) {
+    for (int j = 0; j < this->cols; j++) {
+      this->values[i][j] -= other->values[i][j];
     }
   }
-  MXfree(m);
-  return out;
+  
+  DELETE (other);
+  
+  return this;
 }
 
-Matrix MXdiv(Matrix m, double k) {
-  Matrix out = MX(m.rows, m.cols);
-  for (int i = 0; i < out.rows; i++) {
-    for (int j = 0; j < out.cols; j++) {
-      out.M[i][j] = m.M[i][j] / k;
+Matrix *_(Mul)(double k) {
+  for (int i = 0; i < this->rows; i++) {
+    for (int j = 0; j < this->cols; j++) {
+      this->values[i][j] *= k;
     }
   }
-  MXfree(m);
-  return out;
+  
+  return this;
 }
 
-double MXSn(Matrix *m, int *sigma, int depth, int *parity) {
+Matrix *_(Div)(double k) {
+  for (int i = 0; i < this->rows; i++) {
+    for (int j = 0; j < this->cols; j++) {
+      this->values[i][j] /= k;
+    }
+  }
+  
+  return this;
+}
+
+double _(Sn)(int sigma[], int depth, int *parity) {
   double det;
+
   if (depth > 1) {
     det = 0;
+
     for (int i = 0; ; i++) {
       int swap;
       int with = depth % 2 ? 0 : i;
-      det += MXSn(m, sigma, depth - 1, parity);
+
+      det += Matrix_Sn(this, sigma, depth - 1, parity);
+
       if (i == depth - 1) break;
-      *parity = -*parity;
+
+      *parity          = -*parity;
       swap             = sigma[depth - 1];
       sigma[depth - 1] = sigma[with];
       sigma[with]      = swap;
     }
   } else {
     det = *parity;
-    for (int i = 0; i < m->rows; i++) {
-      det *= m->M[i][sigma[i]];
+
+    for (int i = 0; i < this->rows; i++) {
+      det *= this->values[i][sigma[i]];
     }
   }
+
   return det;
 }
 
-double MXdet(Matrix m) {
-  int    *sigma  = malloc(m.rows * sizeof(int));
-  int     parity = 1;
-  double  det;
-  for (int i = 0; i < m.rows; i++) {
+double _(Det)() {
+  int sigma[this->rows];
+  int parity = 1;
+
+  for (int i = 0; i < this->rows; i++) {
     sigma[i] = i;
   }
-  det = MXSn(&m, sigma, m.rows, &parity);
-  free(sigma);
-  MXfree(m);
-  return det;
+
+  return Matrix_Sn(this, sigma, this->rows, &parity);
 }
 
-Matrix MXmin(Matrix m, int i, int j) {
-  Matrix out = MX(m.rows - 1, m.cols - 1);
-  for (int ii = 0, mi = 0; ii < out.rows; ii++) {
+Matrix *_(Min)(int i, int j) {
+  Matrix *out = NEW (Matrix)(this->rows - 1, this->cols - 1);
+
+  for (int ii = 0, mi = 0; ii < out->rows; ii++) {
     if (ii == i) mi = 1;
-    for (int jj = 0, mj = 0; jj < out.cols; jj++) {
+    for (int jj = 0, mj = 0; jj < out->cols; jj++) {
       if (jj == j) mj = 1;
-      out.M[ii][jj] = m.M[ii + mi][jj + mj];
+      out->values[ii][jj] = this->values[ii + mi][jj + mj];
     }
   }
-  MXfree(m);
+  
+  DELETE (this);
+
   return out;
 }
 
-Matrix MXadj(Matrix m) {
-  Matrix out = MX(m.rows, m.cols);
-  int sign;
-  for (int i = 0; i < out.rows; i++) {
-    for (int j = 0; j < out.cols; j++) {
-      sign = (i + j) % 2 ? -1 : 1;
-      out.M[i][j] = sign * MXdet(MXmin(MXD(m), i, j));
+Matrix *_(Adj)() {
+  Matrix *out = NEW (Matrix) (this->rows, this->cols);
+
+  for (int i = 0; i < out->rows; i++) {
+    for (int j = 0; j < out->cols; j++) {
+      Matrix *min  = Matrix_Min(Matrix_Copy(this), i, j);
+      int     sign = (i + j) % 2 ? -1 : 1;
+
+      out->values[i][j] = sign * Matrix_Det(min);
+
+      DELETE(min);
     }
   }
-  out = MXT(out);
-  MXfree(m);
-  return out;
+
+  DELETE (this);
+
+  return Matrix_T(out);
 }
 
-Matrix MXI(Matrix m) {
+Matrix *_(I)() {
   // For cross platform
-  Matrix out = MXdiv(MXadj(MXD(m)), MXdet(MXD(m)));
-  MXfree(m);
+  Matrix *out = Matrix_Div(Matrix_Adj(Matrix_Copy(this)), Matrix_Det(this));
+  
+  DELETE (this);
+
   return out;
 }
 
-Matrix MXT(Matrix m) {
-  Matrix out = MX(m.cols, m.rows);
-  for (int i = 0; i < out.rows; i++) {
-    for (int j = 0; j < out.cols; j++) {
-      out.M[i][j] = m.M[j][i];
+Matrix *_(T)() {
+  Matrix *out = NEW (Matrix) (this->cols, this->rows);
+
+  for (int i = 0; i < out->rows; i++) {
+    for (int j = 0; j < out->cols; j++) {
+      out->values[i][j] = this->values[j][i];
     }
   }
-  MXfree(m);
+  
+  DELETE (this);
+
   return out;
 }
 
-void MXfree(Matrix m) {
-  for (int i = 0; i < m.rows; i++) free(m.M[i]);
-  free(m.M);
-}
+String *_(ToString)() {
+  String *mx = NEW (String) ("");
 
-Matrix *MXnew(int rows, int cols) {
-  Matrix *out = malloc(sizeof(Matrix));
-  *out = MX(rows, cols);
-  return out;
-}
+  for (int i = 0; i < this->rows; i++) {
+    String_Cat(mx, "[ ");
 
-void MXdel(Matrix **m) {
-  MXfree(**m);
-  free(*m);
-  *m = NULL;
-}
-
-void MXprint(Matrix m) {
-  for (int i = 0; i < m.rows; i++) {
-    printf("[ ");
-    for (int j = 0; j < m.cols; j++) {
-      printf("%5.2f ", m.M[i][j]);
+    for (int j = 0; j < this->cols; j++) {
+      String_Concat(mx, String_Format("%5.2f ", this->values[i][j]));
     }
-    printf("]\n");
+
+    String_Cat(mx, "]\n");
   }
-  MXfree(m);
+  
+  return mx;
 }
+
+#undef TYPEANME
