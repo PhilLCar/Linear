@@ -8,6 +8,7 @@
 #include <diagnostic.h>
 #include <vec.h>
 #include <str.h>
+#include <array.h>
 
 #define TYPENAME Matrix
 
@@ -17,10 +18,12 @@ OBJECT (int rows, int cols) NOBASE
   int      cols;
 END_OBJECT(2, 2);
 
-Matrix *STATIC (Fill)(int rows, int cols, ...);
+Matrix *STATIC (Fill)(int rows, int cols, double values[cols][rows]);
 Matrix *STATIC (Vec)(Vec *other);
 Matrix *STATIC (VecT)(Vec *other);
 
+Array *_(Row)(int i);
+Array *_(Col)(int j);
 
 Matrix *_(Copy)();
 Matrix *_(Cross)(Matrix *other);

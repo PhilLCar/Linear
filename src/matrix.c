@@ -26,20 +26,17 @@ void _(Destruct)()
   }
 }
 
-Matrix *STATIC (Fill)(int rows, int cols, ...)
+Matrix *STATIC (Fill)(int rows, int cols, double values[cols][rows])
 {
   Matrix *out = NEW (Matrix)(rows, cols);
 
-  va_list argv;
-  va_start(argv, cols);
-
   for (int i = 0; i < rows; i++) {
     for (int j = 0; j < cols; j++) {
-      out->values[i][j] = va_arg(argv, double);
+      // For display it's intuitive to write a matrix row by row, but once processed
+      // it's nice to have m[i][j], to follow mathematical notation, hence the flip
+      out->values[i][j] = values[j][i];
     }
   }
-
-  va_end(argv);
 
   return out;
 }
@@ -70,6 +67,34 @@ Matrix *STATIC (VecT)(Vec *other)
   return out;
 }
 
+Array *_(Row)(int i) {
+  Array *row = NEW (Array) (sizeof(double*));
+
+  Array_Resize(row, this->cols);
+
+  double **base = row->base;
+
+  for (int j = 0; j < this->cols; j++) {
+    base[j] = &this->values[i][j];
+  }
+
+  return row;
+}
+
+Array *_(Col)(int j) {
+  Array *col = NEW (Array) (sizeof(double*));
+
+  Array_Resize(col, this->rows);
+
+  double **base = col->base;
+
+  for (int i = 0; i < this->rows; i++) {
+    base[i] = &this->values[i][j];
+  }
+
+  return col;
+}
+
 Matrix *_(Copy)() {
   Matrix *out = NEW (Matrix) (this->rows, this->cols);
 
@@ -83,22 +108,6 @@ Matrix *_(Copy)() {
 
   return out;
 }
-
-// double **MXrow(Matrix m, int i) {
-//   double **row = malloc(m.cols * sizeof(double*));
-//   for (int j = 0; j < m.cols; j++) {
-//     row[j] = &m.M[i][j];
-//   }
-//   return row;
-// }
-
-// double **MXcol(Matrix m, int j) {
-//   double **col = malloc(m.rows * sizeof(double*));
-//   for (int i = 0; i < m.rows; i++) {
-//     col[i] = &m.M[i][j];
-//   }
-//   return col;
-// }
 
 Matrix *_(Cross)(Matrix *other) {
   if (this->cols != other->rows) {
@@ -279,15 +288,19 @@ Matrix *_(T)() {
 String *_(ToString)() {
   String *mx = NEW (String) ("");
 
-  for (int i = 0; i < this->rows; i++) {
+  String_Cat(mx, "[ ");
+
+  for (int j = 0; j < this->cols; j++) {
     String_Cat(mx, "[ ");
 
-    for (int j = 0; j < this->cols; j++) {
-      String_Concat(mx, String_Format("%5.2f ", this->values[i][j]));
+    for (int i = 0; i < this->rows; i++) {
+      String_Concat(mx, String_Format( i == this->rows - 1 ? "%g " : "%g, ", this->values[i][j]));
     }
 
-    String_Cat(mx, "]\n");
+    String_Cat(mx, j == this->cols - 1 ? "] " : "], ");
   }
+
+  String_Cat(mx, "]");
   
   return mx;
 }

@@ -20,6 +20,17 @@ void _(Destruct)()
   }
 }
 
+Vec *STATIC (Fill)(int dimension, double values[dimension])
+{
+  Vec *vec = NEW (Vec) (dimension);
+
+  for (int i = 0; i < vec->dimension; i++) {
+    vec->values[i] = values[i];
+  }
+
+  return vec;
+}
+
 Vec *_(Copy)()
 {
   Vec *vec = NEW (Vec) (this->dimension);
