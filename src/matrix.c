@@ -7,10 +7,10 @@ Matrix *_(Construct)(int rows, int cols)
   if (this) {
     this->rows   = rows;
     this->cols   = cols;
-    this->values = malloc(cols * sizeof(double*));
+    this->base = malloc(rows * sizeof(double*));
 
-    for (int i = 0; i < cols; i++) {
-      this->values[i] = malloc(rows * sizeof(double));
+    for (int i = 0; i < rows; i++) {
+      this->base[i] = malloc(cols * sizeof(double));
     }
   }
 
@@ -19,22 +19,33 @@ Matrix *_(Construct)(int rows, int cols)
 
 void _(Destruct)()
 {
-  if (this->values) {
-    for (int i = 0; i < this->cols; i++) free(this->values[i]);
-    free(this->values);
-    this->values = NULL;
+  if (this->base) {
+    for (int i = 0; i < this->rows; i++) free(this->base[i]);
+    free(this->base);
+    this->base = NULL;
   }
 }
 
-Matrix *STATIC (Fill)(int rows, int cols, double values[rows][cols])
+Matrix *STATIC (Fill)(int rows, int cols, double base[rows][cols])
 {
   Matrix *out = NEW (Matrix)(rows, cols);
 
-  for (int i = 0; i < cols; i++) {
-    for (int j = 0; j < rows; j++) {
-      // For display it's intuitive to write a matrix row by row, but once processed
-      // it's nice to have m[i][j], to follow mathematical notation, hence the flip
-      out->values[i][j] = values[j][i];
+  for (int i = 0; i < rows; i++) {
+    for (int j = 0; j < cols; j++) {
+      out->base[i][j] = base[i][j];
+    }
+  }
+
+  return out;
+}
+
+Matrix *STATIC (I)(int size)
+{
+  Matrix *out = NEW (Matrix)(size, size);
+
+  for (int i = 0; i < out->rows; i++) {
+    for (int j = 0; j < out->cols; j++) {
+      out->base[i][j] = i == j;
     }
   }
 
@@ -46,10 +57,12 @@ Matrix *STATIC (Vec)(Vec *other)
   Matrix *out = NEW (Matrix) (other->dimension, 1);
 
   if (out) {
-    for (int j = 0; j < other->dimension; j++) {
-      out->values[0][j] = other->values[j];
+    for (int i = 0; i < out->rows; i++) {
+      out->base[i][0] = other->base[i];
     }
   }
+
+  DELETE (other);
 
   return out;
 }
@@ -59,49 +72,104 @@ Matrix *STATIC (VecT)(Vec *other)
   Matrix *out = NEW (Matrix) (1, other->dimension);
 
   if (out) {
-    for (int i = 0; i < other->dimension; i++) {
-      out->values[i][0] = other->values[i];
+    for (int j = 0; j < out->cols; j++) {
+      out->base[0][j] = other->base[j];
     }
+  }
+
+  DELETE (other);
+
+  return out;
+}
+
+Vec *CONST (Row)(int i) {
+  Vec *out = NEW (Vec)(this->cols);
+
+  for (int j = 0; j < this->cols; j++) {
+    out->base[j] = this->base[i][j];
   }
 
   return out;
 }
 
-Array *_(Row)(int j) {
-  Array *row = NEW (Array) (sizeof(double*));
+Vec *CONST (Col)(int j) {
+  Vec *out = NEW (Vec)(this->rows);
 
-  Array_Resize(row, this->cols);
-
-  double **base = row->base;
-
-  for (int i = 0; i < this->cols; i++) {
-    base[i] = &this->values[i][j];
+  for (int i = 0; i < this->rows; i++) {
+    out->base[i] = this->base[i][j];
   }
 
-  return row;
+  return out;
 }
 
-Array *_(Col)(int i) {
-  Array *col = NEW (Array) (sizeof(double*));
+double CONST (sn)(int sigma[], int depth, int *parity) {
+  double det;
 
-  Array_Resize(col, this->rows);
+  if (depth > 1) {
+    det = 0;
 
-  double **base = col->base;
+    for (int i = 0; ; i++) {
+      int swap;
+      int with = depth % 2 ? 0 : i;
 
-  for (int j = 0; j < this->rows; j++) {
-    base[i] = &this->values[i][j];
+      det += Matrix_sn(this, sigma, depth - 1, parity);
+
+      if (i == depth - 1) break;
+
+      *parity          = -*parity;
+      swap             = sigma[depth - 1];
+      sigma[depth - 1] = sigma[with];
+      sigma[with]      = swap;
+    }
+  } else {
+    det = *parity;
+
+    for (int i = 0; i < this->rows; i++) {
+      det *= this->base[i][sigma[i]];
+    }
   }
 
-  return col;
+  return det;
+}
+
+double CONST (Det)() {
+  int sigma[this->rows];
+  int parity = 1;
+
+  for (int i = 0; i < this->rows; i++) {
+    sigma[i] = i;
+  }
+
+  return Matrix_sn(this, sigma, this->rows, &parity);
+}
+
+String *CONST (ToString)() {
+  String *mx = NEW (String) ("");
+
+  //String_Cat(mx, "[");
+
+  for (int i = 0; i < this->rows; i++) {
+    String_Cat(mx, "[ ");
+
+    for (int j = 0; j < this->cols; j++) {
+      String_Concat(mx, String_Format(j == this->cols - 1 ? "%g " : "%g, ", this->base[i][j]));
+    }
+
+    String_Cat(mx, i == this->rows - 1 ? "]" : "]\n");
+  }
+
+  //String_Cat(mx, "]");
+  
+  return mx;
 }
 
 Matrix *_(Copy)() {
   Matrix *out = NEW (Matrix) (this->rows, this->cols);
 
   if (out) {
-    for (int i = 0; i < this->cols; i++) {
-      for (int j = 0; j < this->rows; j++) {
-        out->values[i][j] = this->values[i][j];
+    for (int i = 0; i < this->rows; i++) {
+      for (int j = 0; j < this->cols; j++) {
+        out->base[i][j] = this->base[i][j];
       }
     }
   }
@@ -117,12 +185,12 @@ Matrix *_(Cross)(Matrix *other) {
   Matrix *out = NEW (Matrix) (this->rows, other->cols);
 
   if (out) {
-    for (int i = 0; i < out->cols; i++) {
-      for (int j = 0; j < out->rows; j++) {
-        out->values[i][j] = 0;
+    for (int i = 0; i < out->rows; i++) {
+      for (int j = 0; j < out->cols; j++) {
+        out->base[i][j] = 0;
 
         for (int k = 0; k < this->cols; k++) {
-          out->values[i][j] += this->values[k][j] * other->values[i][k];
+          out->base[i][j] += this->base[i][k] * other->base[k][j];
         }
       }
     }
@@ -134,14 +202,30 @@ Matrix *_(Cross)(Matrix *other) {
   return out;
 }
 
+Matrix *_(Mask)(Matrix *other) {
+  if (this->rows != other->rows || this->cols != other->cols) {
+    THROW (NEW (Exception)("Cannot mask a (%dx%d) matrix with a (%dx%d)", this->rows, this->cols, other->rows, other->cols));
+  }
+
+  for (int i = 0; i < this->rows; i++) {
+    for (int j = 0; j < this->cols; j++) {
+      this->base[i][j] *= other->base[i][j];
+    }
+  }
+  
+  DELETE (other);
+  
+  return this;
+}
+
 Matrix *_(Add)(Matrix *other) {
   if (this->rows != other->rows || this->cols != other->cols) {
     THROW (NEW (Exception)("Cannot add a (%dx%d) matrix with a (%dx%d)", this->rows, this->cols, other->rows, other->cols));
   }
 
-  for (int i = 0; i < this->cols; i++) {
-    for (int j = 0; j < this->rows; j++) {
-      this->values[i][j] += other->values[i][j];
+  for (int i = 0; i < this->rows; i++) {
+    for (int j = 0; j < this->cols; j++) {
+      this->base[i][j] += other->base[i][j];
     }
   }
   
@@ -155,9 +239,9 @@ Matrix *_(Sub)(Matrix *other) {
     THROW (NEW (Exception)("Cannot substract a (%dx%d) matrix with a (%dx%d)", this->rows, this->cols, other->rows, other->cols));
   }
 
-  for (int i = 0; i < this->cols; i++) {
-    for (int j = 0; j < this->rows; j++) {
-      this->values[i][j] -= other->values[i][j];
+  for (int i = 0; i < this->rows; i++) {
+    for (int j = 0; j < this->cols; j++) {
+      this->base[i][j] -= other->base[i][j];
     }
   }
   
@@ -167,9 +251,9 @@ Matrix *_(Sub)(Matrix *other) {
 }
 
 Matrix *_(Mul)(double k) {
-  for (int i = 0; i < this->cols; i++) {
-    for (int j = 0; j < this->rows; j++) {
-      this->values[i][j] *= k;
+  for (int i = 0; i < this->rows; i++) {
+    for (int j = 0; j < this->cols; j++) {
+      this->base[i][j] *= k;
     }
   }
   
@@ -177,64 +261,80 @@ Matrix *_(Mul)(double k) {
 }
 
 Matrix *_(Div)(double k) {
-  for (int i = 0; i < this->cols; i++) {
-    for (int j = 0; j < this->rows; j++) {
-      this->values[i][j] /= k;
+  for (int i = 0; i < this->rows; i++) {
+    for (int j = 0; j < this->cols; j++) {
+      this->base[i][j] /= k;
     }
   }
   
   return this;
 }
 
-double _(Sn)(int sigma[], int depth, int *parity) {
-  double det;
+Matrix *_(Pow)(int k) {
+  if (this->cols != this->rows) {
+    THROW (NEW (Exception)("Raising a matrix to any power requires it to be square!"));
+  }
 
-  if (depth > 1) {
-    det = 0;
+  Matrix *out = Matrix_I(this->rows);
 
-    for (int i = 0; ; i++) {
-      int swap;
-      int with = depth % 2 ? 0 : i;
-
-      det += Matrix_Sn(this, sigma, depth - 1, parity);
-
-      if (i == depth - 1) break;
-
-      *parity          = -*parity;
-      swap             = sigma[depth - 1];
-      sigma[depth - 1] = sigma[with];
-      sigma[with]      = swap;
+  if (k) {
+    if (k < 0) {
+      this = Matrix_Inv(this);
+      k    = -k;
     }
-  } else {
-    det = *parity;
 
-    for (int i = 0; i < this->cols; i++) {
-      det *= this->values[i][sigma[i]];
+    for (int i = 0; i < k; i++) {
+      out = Matrix_Cross(Matrix_Copy(this), out);
     }
   }
 
-  return det;
+  DELETE (this);
+  
+  return out;
 }
 
-double _(Det)() {
-  int sigma[this->cols];
-  int parity = 1;
+Matrix *_(RemRow)(int i) {
+  Matrix *out = NEW (Matrix)(this->rows - 1, this->cols);
 
-  for (int i = 0; i < this->rows; i++) {
-    sigma[i] = i;
+  for (int ii = 0, mi = 0; ii < out->rows; ii++) {
+    if (ii == i) ++mi;
+
+    for (int j = 0; j < out->cols; j++) {
+      out->base[ii][j] = this->base[ii + mi][j];
+    }
   }
+  
+  DELETE (this);
 
-  return Matrix_Sn(this, sigma, this->rows, &parity);
+  return out;
 }
 
-Matrix *_(Min)(int i, int j) {
+Matrix *_(RemCol)(int j) {
+  Matrix *out = NEW (Matrix)(this->rows, this->cols - 1);
+
+  for (int i = 0; i < out->rows; i++) {
+    for (int jj = 0, mj = 0; jj < out->cols; jj++) {
+      if (jj == j) ++mj;
+
+      out->base[i][jj] = this->base[i][jj + mj];
+    }
+  }
+  
+  DELETE (this);
+
+  return out;
+}
+
+Matrix *_(Rem)(int i, int j) {
   Matrix *out = NEW (Matrix)(this->rows - 1, this->cols - 1);
 
-  for (int ii = 0, mi = 0; ii < out->cols; ii++) {
-    if (ii == i) mi = 1;
-    for (int jj = 0, mj = 0; jj < out->rows; jj++) {
-      if (jj == j) mj = 1;
-      out->values[ii][jj] = this->values[ii + mi][jj + mj];
+  for (int ii = 0, mi = 0; ii < out->rows; ii++) {
+    if (ii == i) ++mi;
+
+    for (int jj = 0, mj = 0; jj < out->cols; jj++) {
+      if (jj == j) ++mj;
+
+      out->base[ii][jj] = this->base[ii + mi][jj + mj];
     }
   }
   
@@ -246,14 +346,14 @@ Matrix *_(Min)(int i, int j) {
 Matrix *_(Adj)() {
   Matrix *out = NEW (Matrix) (this->rows, this->cols);
 
-  for (int i = 0; i < out->cols; i++) {
-    for (int j = 0; j < out->rows; j++) {
-      Matrix *min  = Matrix_Min(Matrix_Copy(this), i, j);
+  for (int i = 0; i < out->rows; i++) {
+    for (int j = 0; j < out->cols; j++) {
+      Matrix *rem  = Matrix_Rem(Matrix_Copy(this), i, j);
       int     sign = (i + j) % 2 ? -1 : 1;
 
-      out->values[i][j] = sign * Matrix_Det(min);
+      out->base[i][j] = sign * Matrix_Det(rem);
 
-      DELETE(min);
+      DELETE(rem);
     }
   }
 
@@ -262,7 +362,7 @@ Matrix *_(Adj)() {
   return Matrix_T(out);
 }
 
-Matrix *_(I)() {
+Matrix *_(Inv)() {
   // For cross platform
   Matrix *out = Matrix_Div(Matrix_Adj(Matrix_Copy(this)), Matrix_Det(this));
   
@@ -274,35 +374,15 @@ Matrix *_(I)() {
 Matrix *_(T)() {
   Matrix *out = NEW (Matrix) (this->cols, this->rows);
 
-  for (int i = 0; i < out->cols; i++) {
-    for (int j = 0; j < out->rows; j++) {
-      out->values[i][j] = this->values[j][i];
+  for (int i = 0; i < out->rows; i++) {
+    for (int j = 0; j < out->cols; j++) {
+      out->base[i][j] = this->base[j][i];
     }
   }
   
   DELETE (this);
 
   return out;
-}
-
-String *_(ToString)() {
-  String *mx = NEW (String) ("");
-
-  String_Cat(mx, "[ ");
-
-  for (int j = 0; j < this->rows; j++) {
-    String_Cat(mx, "[ ");
-
-    for (int i = 0; i < this->cols; i++) {
-      String_Concat(mx, String_Format( i == this->cols - 1 ? "%g " : "%g, ", this->values[i][j]));
-    }
-
-    String_Cat(mx, j == this->rows - 1 ? "] " : "], ");
-  }
-
-  String_Cat(mx, "]");
-  
-  return mx;
 }
 
 #undef TYPEANME

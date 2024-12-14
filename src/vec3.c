@@ -5,9 +5,9 @@
 Vec3 *_(Construct)(double x, double y, double z)
 {
   if (Vec_Construct(BASE(0), 3)) {
-    BASE(0)->values[0] = x;
-    BASE(0)->values[1] = y;
-    BASE(0)->values[2] = z;
+    BASE(0)->base[0] = x;
+    BASE(0)->base[1] = y;
+    BASE(0)->base[2] = z;
   }
 
   return this;
@@ -20,17 +20,17 @@ void _(Destruct)()
 
 double *_(X)() 
 {
-  return &BASE(0)->values[0];
+  return &BASE(0)->base[0];
 }
 
 double *_(Y)() 
 {
-  return &BASE(0)->values[1];
+  return &BASE(0)->base[1];
 }
 
 double *_(Z)() 
 {
-  return &BASE(0)->values[2];
+  return &BASE(0)->base[2];
 }
 
 Vec3 *STATIC (Vec)(Vec *other)
@@ -51,8 +51,8 @@ Vec3 *STATIC (Normal)(Vec3 *p1, Vec3 *p2, Vec3 *p3)
 }
 
 Vec3 *_(Cross)(Vec3 *other) {
-  double *v1 = this->base.values;
-  double *v2 = other->base.values;
+  double *v1 = this->base.base;
+  double *v2 = other->base.base;
 
   Vec3 *result = NEW (Vec3)(
     v1[1] * v2[2] - v1[2] * v2[1],

@@ -11,8 +11,7 @@
 
 #define TYPENAME Vec
 
-OBJECT(int dimension) NOBASE
-  double *values;
+OBJECT(int dimension) BASED (double*)
   int     dimension;
 END_OBJECT(3);
 

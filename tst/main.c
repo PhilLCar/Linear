@@ -5,17 +5,31 @@
 int main() {
   CHECK_MEMORY
 
-  Matrix *a = Matrix_Fill(3, 2, (double[3][2]){{ 1, 2 }, { 4, 5 }, { 7, 8 }});
-  Matrix *b = Matrix_Fill(2, 3, (double[2][3]){{ 1, 2, 3 }, { 4, 5, 6 }});
+  double test[5][5] = {
+    { 0, 1, 0, 0, 1 },
+    { 0, 0, 0, 0, 1 },
+    { 0, 1, 0, 0, 0 },
+    { 1, 0, 0, 0, 0 },
+    { 1, 0, 0, 0, 0 }
+  };
 
-  print("%O\n", a);
-  print("%O\n", b);
+  int startn = 0;
+  int endn   = 2;
 
-  Matrix *matrix = Matrix_Cross(b, a);
+  Matrix *ajd = Matrix_Fill(5, 5, test);
+  Matrix *pow = Matrix_Copy(ajd);
 
-  print("%g\n", Matrix_Det(matrix));
+  for (int i = 0; i < 5; i++) {
+    print("%O\n", pow);
+    print("%s\n", "==========");
 
-  print("%Of\n", matrix);
+    pow = Matrix_Cross(Matrix_Copy(ajd), pow);
+  }
+
+  print("%Of\n", pow);
+    print("%s\n", "==========");
+
+  print("%Of\n", Matrix_Pow(ajd, 6));
 
   STOP_WATCHING
 

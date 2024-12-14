@@ -12,31 +12,35 @@
 
 #define TYPENAME Matrix
 
-OBJECT (int rows, int cols) NOBASE
-  double **values;
+OBJECT (int rows, int cols) BASED (double**)
   int      rows;
   int      cols;
 END_OBJECT(2, 2);
 
 Matrix *STATIC (Fill)(int rows, int cols, double values[rows][cols]);
+Matrix *STATIC (I)(int size);
 Matrix *STATIC (Vec)(Vec *other);
 Matrix *STATIC (VecT)(Vec *other);
 
-Array *_(Row)(int i);
-Array *_(Col)(int j);
+Vec    *CONST (Row)(int i);
+Vec    *CONST (Col)(int j);
+double  CONST (Det)();
+String *CONST (ToString)() VIRTUAL (ToString);
 
 Matrix *_(Copy)();
 Matrix *_(Cross)(Matrix *other);
+Matrix *_(Mask)(Matrix *other);
 Matrix *_(Add)(Matrix *other);
 Matrix *_(Sub)(Matrix *other);
 Matrix *_(Mul)(double k);
 Matrix *_(Div)(double k);
-double  _(Det)();
-Matrix *_(Min)(int i, int j);
+Matrix *_(Pow)(int k);
+Matrix *_(RemRow)(int j);
+Matrix *_(RemCol)(int i);
+Matrix *_(Rem)(int i, int j);
 Matrix *_(Adj)();
-Matrix *_(I)();
+Matrix *_(Inv)();
 Matrix *_(T)();
-String *_(ToString)() VIRTUAL (ToString);
 
 #undef TYPENAME
 

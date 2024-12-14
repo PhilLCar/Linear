@@ -5,7 +5,7 @@
 Vec *_(Construct)(int dimension)
 {
   if (this) {
-    this->values    = malloc(dimension * sizeof(double));
+    this->base    = malloc(dimension * sizeof(double));
     this->dimension = dimension;
   }
 
@@ -14,18 +14,18 @@ Vec *_(Construct)(int dimension)
 
 void _(Destruct)()
 {
-  if (this->values) {
-    free(this->values);
-    this->values = NULL;
+  if (this->base) {
+    free(this->base);
+    this->base = NULL;
   }
 }
 
-Vec *STATIC (Fill)(int dimension, double values[dimension])
+Vec *STATIC (Fill)(int dimension, double base[dimension])
 {
   Vec *vec = NEW (Vec) (dimension);
 
   for (int i = 0; i < vec->dimension; i++) {
-    vec->values[i] = values[i];
+    vec->base[i] = base[i];
   }
 
   return vec;
@@ -35,7 +35,7 @@ Vec *_(Copy)()
 {
   Vec *vec = NEW (Vec) (this->dimension);
 
-  for (int i = 0; i < this->dimension; i++) vec->values[i] = this->values[i];
+  for (int i = 0; i < this->dimension; i++) vec->base[i] = this->base[i];
 
   return vec;
 }
@@ -44,7 +44,7 @@ double _(Size)() {
   double tot = 0;
 
   for (int i = 0; i < this->dimension; i++) {
-    double v = this->values[i];
+    double v = this->base[i];
 
     tot += v * v;
   }
@@ -54,8 +54,8 @@ double _(Size)() {
 
 double _(Dot)(Vec *other) {
   double  tot = 0;
-  double *v1  = this->values;
-  double *v2  = other->values;
+  double *v1  = this->base;
+  double *v2  = other->base;
 
   if (this->dimension != other->dimension) {
     THROW (NEW (Exception) ("Cannot multiply vectors of size %d and %d", this->dimension, other->dimension));
@@ -72,8 +72,8 @@ double _(Dot)(Vec *other) {
 }
 
 Vec *_(Add)(Vec *other) {
-  double *v1  = this->values;
-  double *v2  = other->values;
+  double *v1  = this->base;
+  double *v2  = other->base;
 
   if (this->dimension != other->dimension) {
     THROW (NEW (Exception) ("Cannot multiply vectors of size %d and %d", this->dimension, other->dimension));
@@ -89,8 +89,8 @@ Vec *_(Add)(Vec *other) {
 }
 
 Vec *_(Sub)(Vec *other) {
-  double *v1  = this->values;
-  double *v2  = other->values;
+  double *v1  = this->base;
+  double *v2  = other->base;
 
   if (this->dimension != other->dimension) {
     THROW (NEW (Exception) ("Cannot multiply vectors of size %d and %d", this->dimension, other->dimension));
@@ -106,7 +106,7 @@ Vec *_(Sub)(Vec *other) {
 }
 
 Vec *_(Mul)(double k) {
-  double *v1  = this->values;
+  double *v1  = this->base;
 
   for (int i = 0; i < this->dimension; i++) {
     v1[i] *= k;
@@ -116,7 +116,7 @@ Vec *_(Mul)(double k) {
 }
 
 Vec *_(Div)(double k) {
-  double *v1  = this->values;
+  double *v1  = this->base;
 
   for (int i = 0; i < this->dimension; i++) {
     v1[i] /= k;
