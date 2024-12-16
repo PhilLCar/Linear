@@ -12,7 +12,7 @@
 
 #define TYPENAME Matrix
 
-OBJECT (int rows, int cols) BASED (double**)
+OBJECT (int rows, int cols) INHERIT (double**)
   int      rows;
   int      cols;
 END_OBJECT(2, 2);

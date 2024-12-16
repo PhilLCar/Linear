@@ -129,4 +129,16 @@ Vec *_(Unit)() {
   return Vec_Div(this, Vec_Size(this));
 }
 
+String *CONST (ToString)() {
+  String *result = NEW (String)("[");
+
+  for (int i = 0; i < this->dimension; i++) {
+    String_Concat(result, String_Format(i == this->dimension - 1 ? " %g " : " %g,", this->base[i]));
+  }
+
+  String_Cat(result, "]");
+
+  return result;
+}
+
 #undef TYPENAME

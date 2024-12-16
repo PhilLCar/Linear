@@ -20,7 +20,7 @@ void _(Destruct)()
 
 double *_(X)() 
 {
-  return &BASE(0)->base[0];
+  return BASE(1)[0];
 }
 
 double *_(Y)() 

@@ -1,6 +1,7 @@
 #include <diagnostic.h>
 #include <matrix.h>
 #include <print.h>
+#include <vec3.h>
 
 int main() {
   CHECK_MEMORY
@@ -30,6 +31,11 @@ int main() {
     print("%s\n", "==========");
 
   print("%Of\n", Matrix_Pow(ajd, 6));
+
+
+  Vec3 *t = NEW (Vec3) (1, 2, 3);
+
+  print("%Of\n", t);
 
   STOP_WATCHING
 
