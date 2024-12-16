@@ -20,7 +20,7 @@ void _(Destruct)()
   }
 }
 
-Vec *STATIC (Fill)(int dimension, double base[dimension])
+Vec *STATIC (From)(int dimension, double base[dimension])
 {
   Vec *vec = NEW (Vec) (dimension);
 

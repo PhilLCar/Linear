@@ -16,7 +16,7 @@ OBJECT(int dimension) INHERIT (double*)
   int     dimension;
 END_OBJECT(3);
 
-Vec *STATIC (Fill)(int dimension, double values[dimension]);
+Vec *STATIC (From)(int dimension, double values[dimension]);
 
 Vec   *_(Copy)();
 double _(Size)();

@@ -14,7 +14,7 @@ int main() {
     { 1, 0, 0, 0, 0 }
   };
 
-  Matrix *test = Matrix_Fill(5, 5, vals);
+  Matrix *test = Matrix_From(5, 5, vals);
   
   print("%O\n", test);
   print("%[%.1f]Of\n", test);

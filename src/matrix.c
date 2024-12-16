@@ -26,7 +26,7 @@ void _(Destruct)()
   }
 }
 
-Matrix *STATIC (Fill)(int rows, int cols, double base[rows][cols])
+Matrix *STATIC (From)(int rows, int cols, double base[rows][cols])
 {
   Matrix *out = NEW (Matrix)(rows, cols);
 

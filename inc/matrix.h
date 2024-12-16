@@ -17,7 +17,7 @@ OBJECT (int rows, int cols) INHERIT (double**)
   int      cols;
 END_OBJECT(2, 2);
 
-Matrix *STATIC (Fill)(int rows, int cols, double values[rows][cols]);
+Matrix *STATIC (From)(int rows, int cols, double values[rows][cols]);
 Matrix *STATIC (I)(int size);
 Matrix *STATIC (Vec)(Vec *other);
 Matrix *STATIC (VecT)(Vec *other);
