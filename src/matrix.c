@@ -146,7 +146,7 @@ double CONST (Det)() {
 String *CONST (ToString)() {
   String *mx = NEW (String) ("");
 
-  //String_Cat(mx, "[");
+  String_Cat(mx, "[");
 
   for (int i = 0; i < this->rows; i++) {
     String_Cat(mx, "[ ");
@@ -155,10 +155,32 @@ String *CONST (ToString)() {
       String_Concat(mx, String_Format(j == this->cols - 1 ? "%g " : "%g, ", this->base[i][j]));
     }
 
+    String_Cat(mx, i == this->rows - 1 ? "]" : "], ");
+  }
+
+  String_Cat(mx, "]");
+  
+  return mx;
+}
+
+String *CONST (ToStringFormat)(const char *format) {
+  String *mx = NEW (String) ("");
+
+  String *fmt1 = String_Format("%s ",  format);
+  String *fmt2 = String_Format("%s, ", format);
+
+  for (int i = 0; i < this->rows; i++) {
+    String_Cat(mx, "[ ");
+
+    for (int j = 0; j < this->cols; j++) {
+      String_Concat(mx, String_Format(j == this->cols - 1 ? fmt1->base : fmt2->base, this->base[i][j]));
+    }
+
     String_Cat(mx, i == this->rows - 1 ? "]" : "]\n");
   }
 
-  //String_Cat(mx, "]");
+  DELETE (fmt1);
+  DELETE (fmt2);
   
   return mx;
 }

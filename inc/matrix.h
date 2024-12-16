@@ -25,7 +25,8 @@ Matrix *STATIC (VecT)(Vec *other);
 Vec    *CONST (Row)(int i);
 Vec    *CONST (Col)(int j);
 double  CONST (Det)();
-String *CONST (ToString)() VIRTUAL (ToString);
+String *CONST (ToString)()                         VIRTUAL (ToString);
+String *CONST (ToStringFormat)(const char *format) VIRTUAL (ToStringFormat);
 
 Matrix *_(Copy)();
 Matrix *_(Cross)(Matrix *other);
