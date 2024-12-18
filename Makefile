@@ -9,11 +9,11 @@ include ver/version.mk
 # If the project is separated among multiple sub-folders
 PROJECT_ROOTS =
 
-# Additionnal libraries (ex: -pthread, -lmath, etc)
-ADD_LIBRARIES = -lm
+# Additionnal libraries (ex: -pthread, -lm, etc)
+LIBRARIES = -lm
 
 # Additionnal flags for the compiler
-ADD_CFLAGS = 
+FLAGS = -DMEMORY_WATCH
 
 # Include the template
 include $(CUT_HOME)CUT/res/library.mk

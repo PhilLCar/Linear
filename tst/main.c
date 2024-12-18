@@ -25,6 +25,8 @@ int main() {
 
   print("%Of\n", t);
 
+  CHECK_MEMORY
+
   STOP_WATCHING
 
   return 0;
