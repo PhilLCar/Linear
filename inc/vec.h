@@ -10,26 +10,29 @@
 #include <exception.h>
 #include <str.h>
 
+#include "linear.export.h"
+
+#define PUBLIC LINEAR_EXPORT
 #define TYPENAME Vec
 
 OBJECT(int dimension) INHERIT (double*)
   int     dimension;
 END_OBJECT(3);
 
-Vec *STATIC (From)(int dimension, double values[dimension]);
+PUBLIC Vec *STATIC (From)(int dimension, double values[dimension]);
 
-Vec   *_(Copy)();
-double _(Size)();
-double _(Dot)(Vec *other);
-Vec   *_(Add)(Vec *other);
-Vec   *_(Sub)(Vec *other);
-Vec   *_(Mul)(double k);
-Vec   *_(Div)(double k);
-Vec   *_(Unit)();
+PUBLIC Vec   *_(Copy)();
+PUBLIC double _(Size)();
+PUBLIC double _(Dot)(Vec *other);
+PUBLIC Vec   *_(Add)(Vec *other);
+PUBLIC Vec   *_(Sub)(Vec *other);
+PUBLIC Vec   *_(Mul)(double k);
+PUBLIC Vec   *_(Div)(double k);
+PUBLIC Vec   *_(Unit)();
 
-String *CONST (ToString)() VIRTUAL(ToString);
-
+PUBLIC String *CONST (ToString)() VIRTUAL(ToString);
 
 #undef TYPENAME
+#undef PUBLIC
 
 #endif
